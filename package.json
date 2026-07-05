@@ -1,0 +1,23 @@
+{
+  "name": "task-2",
+  "version": "1.0.0",
+  "description": "Simple email verification app with Passport and MySQL",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --watch . --exec node index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "mysql": "^2.18.1",
+    
+    "nodemailer": "^9.0.3",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
+  }
+}
