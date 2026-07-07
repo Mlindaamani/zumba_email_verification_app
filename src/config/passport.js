@@ -1,7 +1,7 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const { hashPassword } = require('../utils/crypto');
-const userModel = require('../models/userModel');
+const User = require('../models/User');
 
 /**
  * Configure Passport authentication strategy
@@ -10,7 +10,7 @@ const configurePassport = () => {
   passport.use(
     new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
       try {
-        const user = await userModel.findByEmail(email);
+        const user = await User.findByEmail(email);
         
         if (!user) {
           return done(null, false, { message: 'Email or password is not correct.' });
@@ -38,7 +38,7 @@ const configurePassport = () => {
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await userModel.findById(id);
+      const user = await User.findById(id);
       done(null, user || false);
     } catch (error) {
       done(error);

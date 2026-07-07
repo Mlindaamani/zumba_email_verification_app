@@ -9,11 +9,11 @@ dotenv.config();
 
 // Import configurations
 const configurePassport = require("./config/passport");
+const flashMiddleware = require("./middleware/flashMiddleware");
 
 // Import routes
 const indexRoutes = require("./routes/indexRoutes");
-const authRoutes = require("./routes/authRoutes");
-
+const authRoutes = require("./routes/authRoutes");const profileRoutes = require('./routes/profileRoutes');
 // Initialize Express app
 const app = express();
 
@@ -45,11 +45,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 configurePassport();
 
+// Flash messages middleware
+app.use(flashMiddleware);
+
 // Routes
 app.use("/", indexRoutes);
 app.use("/", authRoutes);
-
-// Error handling middleware
+app.use('/', profileRoutes);// Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Error:", err);
   res

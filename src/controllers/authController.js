@@ -8,7 +8,7 @@ const {
 } = require("../utils/crypto");
 const { isValidEmail } = require("../utils/validators");
 const { renderWithLayout } = require("../utils/viewHelper");
-const userModel = require("../models/userModel");
+const User = require("../models/User");
 const mailTransport = require("../config/email");
 
 /**
@@ -63,7 +63,7 @@ const postRegister = async (req, res) => {
 
   try {
     // Check if user already exists
-    const existingUser = await userModel.findByEmail(email);
+    const existingUser = await User.findByEmail(email);
     if (existingUser) {
       const html = await renderWithLayout(
         "register",
@@ -81,7 +81,7 @@ const postRegister = async (req, res) => {
     const passwordHash = hashPassword(password, salt);
     const verifyToken = generateToken();
 
-    await userModel.create({
+    await User.create({
       name,
       email,
       passwordHash,
@@ -158,7 +158,7 @@ const verifyEmail = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findByVerifyToken(token);
+    const user = await User.findByVerifyToken(token);
 
     if (!user) {
       const html = await renderWithLayout(
@@ -174,7 +174,7 @@ const verifyEmail = async (req, res) => {
       return res.send(html);
     }
 
-    await userModel.markAsVerified(user.id);
+    await User.markAsVerified(user.id);
 
     const html = await renderWithLayout(
       "message",

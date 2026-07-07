@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const ejs = require('ejs');
 
 /**
@@ -14,7 +14,7 @@ const renderWithLayout = async (viewPath, data = {}, req = null) => {
   // Add user to data if request is available
   const viewData = {
     ...data,
-    user: req && req.user ? req.user : null,
+    user: req?.user ? req.user : null,
   };
 
   // Render the page content
