@@ -1,23 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { requireLogin } = require('../middleware/authMiddleware');
+const { requireLogin } = require("../middleware/authMiddleware");
+const { renderWithLayout } = require("../utils/viewHelper");
 
 // Home page
-router.get('/', (req, res) => {
-  res.send(`
-    <h1>Simple Email Verification App</h1>
-    <p><a href="/register">Register</a> | <a href="/login">Login</a></p>
-  `);
+router.get("/", async (req, res) => {
+  try {
+    const html = await renderWithLayout(
+      "home",
+      {
+        title: "Home",
+      },
+      req,
+    );
+    res.send(html);
+  } catch (error) {
+    console.error("Render error:", error);
+    res.status(500).send("Error rendering page");
+  }
 });
 
 // Dashboard (protected route)
-router.get('/dashboard', requireLogin, (req, res) => {
-  res.send(`
-    <h1>Dashboard</h1>
-    <p>Welcome, <strong>${req.user.name}</strong>.</p>
-    <p>Email verified: <strong>${req.user.verified ? 'Yes' : 'No'}</strong></p>
-    <p><a href="/logout">Logout</a></p>
-  `);
+router.get("/dashboard", requireLogin, async (req, res) => {
+  try {
+    const html = await renderWithLayout(
+      "dashboard",
+      {
+        title: "Dashboard",
+      },
+      req,
+    );
+    res.send(html);
+  } catch (error) {
+    console.error("Render error:", error);
+    res.status(500).send("Error rendering page");
+  }
 });
 
 module.exports = router;

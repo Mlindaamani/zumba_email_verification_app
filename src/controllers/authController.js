@@ -1,23 +1,33 @@
-const passport = require('passport');
-const { generateSalt, hashPassword, generateToken } = require('../utils/crypto');
-const { isValidEmail } = require('../utils/validators');
-const userModel = require('../models/userModel');
-const mailTransport = require('../config/email');
+const passport = require("passport");
+const path = require("path");
+const ejs = require("ejs");
+const {
+  generateSalt,
+  hashPassword,
+  generateToken,
+} = require("../utils/crypto");
+const { isValidEmail } = require("../utils/validators");
+const { renderWithLayout } = require("../utils/viewHelper");
+const userModel = require("../models/userModel");
+const mailTransport = require("../config/email");
 
 /**
  * Show registration page
  */
-const getRegister = (req, res) => {
-  res.send(`
-    <h1>Register</h1>
-    <form method="POST" action="/register">
-      <label>Name:<br><input name="name" required></label><br><br>
-      <label>Email:<br><input name="email" type="email" required></label><br><br>
-      <label>Password:<br><input name="password" type="password" required></label><br><br>
-      <button type="submit">Register</button>
-    </form>
-    <p><a href="/login">Already have an account? Login</a></p>
-  `);
+const getRegister = async (req, res) => {
+  try {
+    const html = await renderWithLayout(
+      "register",
+      {
+        title: "Register",
+      },
+      req,
+    );
+    res.send(html);
+  } catch (error) {
+    console.error("Render error:", error);
+    res.status(500).send("Error rendering page");
+  }
 };
 
 /**
@@ -28,18 +38,42 @@ const postRegister = async (req, res) => {
 
   // Validate input
   if (!name || !email || !password) {
-    return res.send('<p>Please fill all fields.</p><a href="/register">Back</a>');
+    const html = await renderWithLayout(
+      "register",
+      {
+        title: "Register",
+        error: "Please fill all fields.",
+      },
+      req,
+    );
+    return res.send(html);
   }
 
   if (!isValidEmail(email)) {
-    return res.send('<p>Email is not valid. Use a real email address.</p><a href="/register">Back</a>');
+    const html = await renderWithLayout(
+      "register",
+      {
+        title: "Register",
+        error: "Email is not valid. Use a real email address.",
+      },
+      req,
+    );
+    return res.send(html);
   }
 
   try {
     // Check if user already exists
     const existingUser = await userModel.findByEmail(email);
     if (existingUser) {
-      return res.send('<p>Email already registered. Please login or use another email.</p><a href="/register">Back</a>');
+      const html = await renderWithLayout(
+        "register",
+        {
+          title: "Register",
+          error: "Email already registered. Please login or use another email.",
+        },
+        req,
+      );
+      return res.send(html);
     }
 
     // Create user
@@ -56,22 +90,50 @@ const postRegister = async (req, res) => {
     });
 
     // Send verification email
-    const verifyUrl = `${req.protocol}://${req.get('host')}/verify?token=${verifyToken}`;
+    const verifyUrl = `${req.protocol}://${req.get("host")}/verify?token=${verifyToken}`;
+
+    // Render email template
+    const emailTemplatePath = path.join(
+      __dirname,
+      "../views/emails/verification.ejs",
+    );
+    const emailHtml = await ejs.renderFile(emailTemplatePath, {
+      name,
+      verifyUrl,
+    });
+
     await mailTransport.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Verify your email',
-      html: `<p>Hello ${name},</p><p>Click the link below to verify your email address:</p><p><a href="${verifyUrl}">Verify Email</a></p>`,
+      subject: "Verify your email - Email Verification App",
+      html: emailHtml,
     });
 
-    res.send(`
-      <h2>Registration successful</h2>
-      <p>Verification email sent to <strong>${email}</strong>. Check your Gmail inbox and click the verification link.</p>
-      <p><a href="/login">Login</a></p>
-    `);
+    const html = await renderWithLayout(
+      "message",
+      {
+        title: "Registration Successful",
+        type: "success",
+        message: "Verification email sent to",
+        email: email,
+        link: { url: "/login", text: "Go to Login" },
+      },
+      req,
+    );
+    res.send(html);
   } catch (error) {
-    console.error('Register error:', error);
-    res.send('<p>Failed to register. Please try again later.</p><a href="/register">Back</a>');
+    console.error("Register error:", error);
+    const html = await renderWithLayout(
+      "message",
+      {
+        title: "Registration Failed",
+        type: "error",
+        message: "Failed to register. Please try again later.",
+        link: { url: "/register", text: "Try Again" },
+      },
+      req,
+    );
+    res.send(html);
   }
 };
 
@@ -82,60 +144,109 @@ const verifyEmail = async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    return res.send('<p>Invalid verification link.</p><a href="/">Home</a>');
+    const html = await renderWithLayout(
+      "message",
+      {
+        title: "Invalid Link",
+        type: "error",
+        message: "Invalid verification link.",
+        link: null,
+      },
+      req,
+    );
+    return res.send(html);
   }
 
   try {
     const user = await userModel.findByVerifyToken(token);
 
     if (!user) {
-      return res.send('<p>Email not verified. Token is invalid or expired.</p><a href="/">Home</a>');
+      const html = await renderWithLayout(
+        "message",
+        {
+          title: "Verification Failed",
+          type: "error",
+          message: "Email not verified. Token is invalid or expired.",
+          link: null,
+        },
+        req,
+      );
+      return res.send(html);
     }
 
     await userModel.markAsVerified(user.id);
 
-    res.send(`
-      <h2>Email Verified</h2>
-      <p>Your email <strong>${user.email}</strong> is now verified.</p>
-      <p><a href="/login">Login</a></p>
-    `);
+    const html = await renderWithLayout(
+      "message",
+      {
+        title: "Email Verified",
+        type: "success",
+        message: "Your email has been successfully verified!",
+        email: user.email,
+        link: { url: "/login", text: "Login Now" },
+      },
+      req,
+    );
+    res.send(html);
   } catch (error) {
-    console.error('Verify error:', error);
-    res.send('<p>Failed to verify email. Please try again later.</p><a href="/">Home</a>');
+    console.error("Verify error:", error);
+    const html = await renderWithLayout(
+      "message",
+      {
+        title: "Verification Error",
+        type: "error",
+        message: "Failed to verify email. Please try again later.",
+        link: null,
+      },
+      req,
+    );
+    res.send(html);
   }
 };
 
 /**
  * Show login page
  */
-const getLogin = (req, res) => {
-  res.send(`
-    <h1>Login</h1>
-    <form method="POST" action="/login">
-      <label>Email:<br><input name="email" type="email" required></label><br><br>
-      <label>Password:<br><input name="password" type="password" required></label><br><br>
-      <button type="submit">Login</button>
-    </form>
-    <p><a href="/register">Create an account</a></p>
-  `);
+const getLogin = async (req, res) => {
+  try {
+    const html = await renderWithLayout(
+      "login",
+      {
+        title: "Login",
+      },
+      req,
+    );
+    res.send(html);
+  } catch (error) {
+    console.error("Render error:", error);
+    res.status(500).send("Error rendering page");
+  }
 };
 
 /**
  * Handle login submission
  */
 const postLogin = (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
+  passport.authenticate("local", async (err, user, info) => {
     if (err) {
       return next(err);
     }
     if (!user) {
-      return res.send(`<p>${info && info.message ? info.message : 'Login failed.'}</p><a href="/login">Back</a>`);
+      const html = await renderWithLayout(
+        "login",
+        {
+          title: "Login",
+          error: info && info.message ? info.message : "Login failed.",
+        },
+        req,
+      );
+      return res.send(html);
     }
     req.logIn(user, (loginError) => {
       if (loginError) {
         return next(loginError);
       }
-      return res.redirect('/dashboard');
+      return res.redirect("/dashboard");
     });
   })(req, res, next);
 };
@@ -148,7 +259,7 @@ const logout = (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.redirect('/login');
+    res.redirect("/login");
   });
 };
 

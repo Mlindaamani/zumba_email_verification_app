@@ -1,6 +1,17 @@
 # Email Verification App
 
-A Modular Node.js application with email verification using Express, Passport, and MySQL.
+A professional, modular Node.js application with email verification using Express, Passport, MySQL, EJS templates, and Bootstrap 5.
+
+## 🎨 Tech Stack
+
+- **Backend**: Node.js, Express.js
+- **Database**: MySQL
+- **Authentication**: Passport.js (Local Strategy)
+- **Template Engine**: EJS
+- **UI Framework**: Bootstrap 5.3
+- **Icons**: Bootstrap Icons
+- **Email**: Nodemailer
+- **Security**: PBKDF2 password hashing
 
 ## Project Structure
 
@@ -19,14 +30,29 @@ A Modular Node.js application with email verification using Express, Passport, a
 │   ├── routes/              # Route definitions
 │   │   ├── authRoutes.js    # Authentication routes
 │   │   └── indexRoutes.js   # Home and dashboard routes
+│   ├── views/               # EJS Templates
+│   │   ├── layouts/         # Layout templates
+│   │   │   └── main.ejs
+│   │   └── pages/           # Page templates
+│   │       ├── home.ejs
+│   │       ├── login.ejs
+│   │       ├── register.ejs
+│   │       ├── dashboard.ejs
+│   │       └── message.ejs
+│   ├── public/              # Static assets
+│   │   ├── css/
+│   │   │   └── style.css    # Professional styling
+│   │   ├── js/
+│   │   └── images/
 │   ├── utils/               # Helper functions
 │   │   ├── crypto.js        # Password hashing & token generation
-│   │   └── validators.js    # Input validation
+│   │   ├── validators.js    # Input validation
+│   │   └── viewHelper.js    # Template rendering helper
 │   ├── app.js              # Express app configuration
 │   └── server.js           # Application entry point
 ├── .env                     # Environment variables
 ├── package.json
-└── README.md
+├── README.md
 
 ```
 
@@ -38,6 +64,11 @@ A Modular Node.js application with email verification using Express, Passport, a
 - ✅ Email verification via nodemailer
 - ✅ Protected routes/middleware
 - ✅ Modular, maintainable code structure
+- ✅ Professional Bootstrap 5 UI
+- ✅ Bootstrap Icons (no emojis)
+- ✅ Responsive design (mobile-friendly)
+- ✅ Clean, accessible markup
+- ✅ Professional email templates
 
 ## Prerequisites
 
