@@ -6,6 +6,7 @@ const mysql = require('mysql');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+const util = require('util');
 
 dotenv.config();
 
@@ -32,6 +33,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
+// Promisify pool.query for async/await
+pool.query = util.promisify(pool.query);
 
 
 
@@ -65,7 +69,7 @@ const mailTransport = nodemailer.createTransport({
 passport.use(
   new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
-      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+      const rows = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
       const user = rows[0];
       if (!user) {
         return done(null, false, { message: 'Email or password is not correct.' });
@@ -88,7 +92,7 @@ passport.serializeUser((user, done) => done(null, user.id));
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const [rows] = await pool.query('SELECT id, name, email, verified FROM users WHERE id = ?', [id]);
+    const rows = await pool.query('SELECT id, name, email, verified FROM users WHERE id = ?', [id]);
     done(null, rows[0] || false);
   } catch (error) {
     done(error);
@@ -168,7 +172,7 @@ app.get('/verify', async (req, res) => {
     return res.send('<p>Invalid verification link.</p><a href="/">Home</a>');
   }
   try {
-    const [rows] = await pool.query('SELECT id, email FROM users WHERE verify_token = ?', [token]);
+    const rows = await pool.query('SELECT id, email FROM users WHERE verify_token = ?', [token]);
     if (rows.length === 0) {
       return res.send('<p>Email not verified. Token is invalid or expired.</p><a href="/">Home</a>');
     }
