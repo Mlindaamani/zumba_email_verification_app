@@ -1,15 +1,28 @@
 <div class="bg-primary text-white py-5">
     <div class="container text-center py-5">
-        <h1 class="display-4 fw-bold mb-3">Welcome to Email Verification App</h1>
-        <p class="lead mb-4">Secure authentication with email verification</p>
-        <div class="d-flex gap-3 justify-content-center">
-            <a href="/register" class="btn btn-light btn-lg">
-                <i class="bi bi-person-plus me-2"></i>Get Started
-            </a>
-            <a href="/login" class="btn btn-outline-light btn-lg">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
-            </a>
-        </div>
+        <% if (user) { %>
+            <h1 class="display-4 fw-bold mb-3">Welcome Back, <%= user.name %>!</h1>
+            <p class="lead mb-4">You're already logged in. Access your dashboard to manage your account.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="/dashboard" class="btn btn-light btn-lg">
+                    <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                </a>
+                <a href="/logout" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+            </div>
+            <% } else { %>
+                <h1 class="display-4 fw-bold mb-3">Welcome to Email Verification App</h1>
+                <p class="lead mb-4">Secure authentication with email verification</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="/register" class="btn btn-light btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Get Started
+                    </a>
+                    <a href="/login" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                </div>
+                <% } %>
     </div>
 </div>
 

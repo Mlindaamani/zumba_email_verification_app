@@ -81,13 +81,21 @@ const postRegister = async (req, res) => {
     const passwordHash = hashPassword(password, salt);
     const verifyToken = generateToken();
 
-    await User.create({
+    const result = await User.create({
       name,
       email,
       passwordHash,
       salt,
       verifyToken,
     });
+
+    // Log account creation activity
+    const userId = result.insertId;
+    try {
+      await User.logActivity(userId, "Account created", req.ip);
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
 
     // Send verification email
     const verifyUrl = `${req.protocol}://${req.get("host")}/verify?token=${verifyToken}`;
@@ -176,6 +184,13 @@ const verifyEmail = async (req, res) => {
 
     await User.markAsVerified(user.id);
 
+    // Log email verification activity
+    try {
+      await User.logActivity(user.id, "Email verified", req.ip);
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+
     const html = await renderWithLayout(
       "message",
       {
@@ -242,10 +257,18 @@ const postLogin = (req, res, next) => {
       );
       return res.send(html);
     }
-    req.logIn(user, (loginError) => {
+    req.logIn(user, async (loginError) => {
       if (loginError) {
         return next(loginError);
       }
+      
+      // Log the login activity
+      try {
+        await User.logActivity(user.id, "Logged in", req.ip);
+      } catch (error) {
+        console.error("Failed to log activity:", error);
+      }
+      
       return res.redirect("/dashboard");
     });
   })(req, res, next);

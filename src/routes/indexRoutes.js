@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { requireLogin } = require("../middleware/authMiddleware");
 const { renderWithLayout } = require("../utils/viewHelper");
+const User = require("../models/User");
 
 // Home page
 router.get("/", async (req, res) => {
@@ -23,10 +24,14 @@ router.get("/", async (req, res) => {
 // Dashboard (protected route)
 router.get("/dashboard", requireLogin, async (req, res) => {
   try {
+    // Fetch user's recent activity logs
+    const activities = await User.getActivityLogs(req.user.id, 10);
+
     const html = await renderWithLayout(
       "dashboard",
       {
         title: "Dashboard",
+        activities: activities || [],
       },
       req,
     );

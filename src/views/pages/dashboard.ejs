@@ -171,43 +171,73 @@
                             <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Recent Activity</h5>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
-                                <i class="bi bi-check-circle-fill text-success me-3 mt-1"></i>
-                                <div class="flex-grow-1">
-                                    <p class="mb-0 fw-bold">Account Created</p>
-                                    <small class="text-muted">Your account was successfully created</small>
-                                </div>
-                                <small class="text-muted">Today</small>
-                            </div>
+                            <% if (activities && activities.length> 0) { %>
+                                <% activities.forEach((activity, index)=> {
+                                    // Determine icon and color based on activity type
+                                    let icon = 'bi-circle-fill';
+                                    let color = 'text-secondary';
 
-                            <% if (user.verified) { %>
-                                <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
-                                    <i class="bi bi-envelope-check-fill text-primary me-3 mt-1"></i>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-0 fw-bold">Email Verified</p>
-                                        <small class="text-muted">Email address verified successfully</small>
-                                    </div>
-                                    <small class="text-muted">Today</small>
-                                </div>
-                                <% } %>
+                                    if (activity.activity.toLowerCase().includes('login')) {
+                                    icon = 'bi-box-arrow-in-right';
+                                    color = 'text-info';
+                                    } else if (activity.activity.toLowerCase().includes('password')) {
+                                    icon = 'bi-key-fill';
+                                    color = 'text-warning';
+                                    } else if (activity.activity.toLowerCase().includes('profile')) {
+                                    icon = 'bi-person-fill';
+                                    color = 'text-primary';
+                                    } else if (activity.activity.toLowerCase().includes('verified') ||
+                                    activity.activity.toLowerCase().includes('created')) {
+                                    icon = 'bi-check-circle-fill';
+                                    color = 'text-success';
+                                    }
 
-                                    <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
-                                        <i class="bi bi-box-arrow-in-right text-info me-3 mt-1"></i>
-                                        <div class="flex-grow-1">
-                                            <p class="mb-0 fw-bold">Logged In</p>
-                                            <small class="text-muted">Successful login to your account</small>
-                                        </div>
-                                        <small class="text-muted">Just now</small>
-                                    </div>
+                                    // Format date
+                                    const activityDate = new Date(activity.created_at);
+                                    const now = new Date();
+                                    const diffMs = now - activityDate;
+                                    const diffMins = Math.floor(diffMs / 60000);
+                                    const diffHours = Math.floor(diffMs / 3600000);
+                                    const diffDays = Math.floor(diffMs / 86400000);
 
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-shield-check text-secondary me-3 mt-1"></i>
-                                        <div class="flex-grow-1">
-                                            <p class="mb-0 fw-bold">Security Check</p>
-                                            <small class="text-muted">Account security verified</small>
-                                        </div>
-                                        <small class="text-muted">Today</small>
-                                    </div>
+                                    let timeAgo = 'Just now';
+                                    if (diffMins < 1) { timeAgo='Just now' ; } else if (diffMins < 60) {
+                                        timeAgo=diffMins + ' min ago' ; } else if (diffHours < 24) { timeAgo=diffHours
+                                        + ' hour' + (diffHours> 1 ? 's' : '') + ' ago';
+                                        } else if (diffDays < 7) { timeAgo=diffDays + ' day' + (diffDays> 1 ? 's' : '')
+                                            + ' ago';
+                                            } else {
+                                            timeAgo = activityDate.toLocaleDateString();
+                                            }
+
+                                            const isLast = index === activities.length - 1;
+                                            %>
+                                            <div
+                                                class="d-flex align-items-start <%= isLast ? '' : 'mb-3 pb-3 border-bottom' %>">
+                                                <i class="bi <%= icon %> <%= color %> me-3 mt-1"></i>
+                                                <div class="flex-grow-1">
+                                                    <p class="mb-0 fw-bold">
+                                                        <%= activity.activity %>
+                                                    </p>
+                                                    <% if (activity.ip_address) { %>
+                                                        <small class="text-muted">From IP: <%= activity.ip_address %>
+                                                                </small>
+                                                        <% } else { %>
+                                                            <small class="text-muted">Activity logged</small>
+                                                            <% } %>
+                                                </div>
+                                                <small class="text-muted">
+                                                    <%= timeAgo %>
+                                                </small>
+                                            </div>
+                                            <% }); %>
+                                                <% } else { %>
+                                                    <div class="text-center py-4">
+                                                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                                                        <p class="text-muted mt-3 mb-0">No recent activity to display
+                                                        </p>
+                                                    </div>
+                                                    <% } %>
                         </div>
                     </div>
                 </div>
@@ -219,10 +249,45 @@
                             <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Security Settings</h5>
                         </div>
                         <div class="card-body">
+                            <% 
+                                // Find the most recent password change activity
+                                let lastPasswordChange = null;
+                                if (activities && activities.length > 0) {
+                                    const passwordActivities = activities.filter(a => 
+                                        a.activity.toLowerCase().includes('password') && 
+                                        !a.activity.toLowerCase().includes('reset requested')
+                                    );
+                                    if (passwordActivities.length > 0) {
+                                        lastPasswordChange = passwordActivities[0];
+                                    }
+                                }
+                                
+                                let lastChangeText = 'Never';
+                                if (lastPasswordChange) {
+                                    const changeDate = new Date(lastPasswordChange.created_at);
+                                    const now = new Date();
+                                    const diffMs = now - changeDate;
+                                    const diffMins = Math.floor(diffMs / 60000);
+                                    const diffHours = Math.floor(diffMs / 3600000);
+                                    const diffDays = Math.floor(diffMs / 86400000);
+                                    
+                                    if (diffMins < 1) {
+                                        lastChangeText = 'Just now';
+                                    } else if (diffMins < 60) {
+                                        lastChangeText = diffMins + ' minute' + (diffMins > 1 ? 's' : '') + ' ago';
+                                    } else if (diffHours < 24) {
+                                        lastChangeText = diffHours + ' hour' + (diffHours > 1 ? 's' : '') + ' ago';
+                                    } else if (diffDays < 7) {
+                                        lastChangeText = diffDays + ' day' + (diffDays > 1 ? 's' : '') + ' ago';
+                                    } else {
+                                        lastChangeText = changeDate.toLocaleDateString();
+                                    }
+                                }
+                            %>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <p class="mb-0 fw-bold">Password</p>
-                                    <small class="text-muted">Last changed: Never</small>
+                                    <small class="text-muted">Last changed: <%= lastChangeText %></small>
                                 </div>
                                 <a href="/change-password" class="btn btn-sm btn-outline-primary">Change</a>
                             </div>
