@@ -2,10 +2,10 @@
   "name": "task-2",
   "version": "1.0.0",
   "description": "Simple email verification app with Passport and MySQL",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon --watch . --exec node index.js",
-    "start": "node index.js"
+    "dev": "nodemon --watch src --exec node src/server.js",
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
