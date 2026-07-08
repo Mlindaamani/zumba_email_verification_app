@@ -2,7 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const dotenv = require("dotenv");
-const path = require("path");
+const path = require("node:path");
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +13,9 @@ const flashMiddleware = require("./middleware/flashMiddleware");
 
 // Import routes
 const indexRoutes = require("./routes/indexRoutes");
-const authRoutes = require("./routes/authRoutes");const profileRoutes = require('./routes/profileRoutes');
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require('./routes/profileRoutes');
+
 // Initialize Express app
 const app = express();
 

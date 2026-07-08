@@ -1,5 +1,5 @@
 const passport = require("passport");
-const path = require("path");
+const path = require("node:path");
 const ejs = require("ejs");
 const {
   generateSalt,
@@ -251,7 +251,7 @@ const postLogin = (req, res, next) => {
         "login",
         {
           title: "Login",
-          error: info && info.message ? info.message : "Login failed.",
+          error: info?.message ? info.message : "Login failed.",
         },
         req,
       );

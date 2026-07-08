@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const util = require('util');
+const util = require('node:util');
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
